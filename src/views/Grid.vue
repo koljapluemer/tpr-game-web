@@ -2,7 +2,7 @@
   <h2 class="font-bold text-2xl text-center text-slate-800 p-2">
     Pack die Melone ins Auto!
   </h2>
-  <div class="flex flex-col gap-1 bg-white p-8" v-if="playGrid">
+  <div class="flex flex-col gap-1 bg-white p-2" v-if="playGrid">
     <!-- Render the grid rows -->
     <div v-for="(row, rowIndex) in playGrid" :key="rowIndex" class="flex flex-row gap-1">
       <div
@@ -28,13 +28,11 @@
         >
           <!-- this can later be extended into rendering the whole array of images, so img can be added -->
           <img
-            :key="playGrid[rowIndex][colIndex].card.images[0].name"
-            :src="
-              '/assets/items/' +
-              playGrid[rowIndex][colIndex].card.images[0].name +
-              '.webp'
-            "
-            class="object-contain w-24 h-24"
+            v-for="img of playGrid[rowIndex][colIndex].card.images"
+            :key="img.name"
+            :src="'/assets/items/' + img.name + '.webp'"
+            class="object-contain w-24 h-24 absolute"
+            :style="getImageStyle(img)"
             alt=""
             draggable="false"
           />
@@ -61,6 +59,8 @@ export interface Item {
 export interface CardImage {
   name: string;
   zIndex: number;
+  scale?: number;
+  offset?: [number, number];
 }
 
 // Card interface with mutable state
@@ -93,7 +93,7 @@ for (var key in itemTemplates) {
   let item: Item = {
     key: key,
     images: val["images"],
-    affordances: val["affordances"],
+    affordances: val["affordances"] || [],
     loadWhenCut: val["load_when_cut"],
   };
   items[key] = item;
@@ -112,7 +112,7 @@ for (var key in levelTemplates) {
   levels.push(level);
 }
 
-const currentLevel = ref(levels[1]);
+const currentLevel = ref(levels[2]);
 const playGrid: Ref<Grid | null> = ref(null);
 
 function generateGrid() {
@@ -167,6 +167,15 @@ function onDragStart(event, row, col) {
   dragOrigin = [row, col];
 }
 
+function getImageStyle(img: CardImage): string {
+  if (img.scale != undefined && img.offset != undefined) {
+    // TODO: everything after 1st is randomly ignored xD
+    return `transform: scale(${img.scale}); left: ${img.offset[0]} px; top: ${img.offset[1]} px;`;
+  } else {
+    return "";
+  }
+}
+
 function onDrop(event, row, col) {
   playGrid.value![dragOrigin[0]][dragOrigin[1]].is_being_dragged = false;
 
@@ -216,7 +225,26 @@ function onDrop(event, row, col) {
     }
     if (card_sending?.item.affordances.includes("storable-small")) {
       // test if it fits
-      if (card_receiving.item.affordances.includes("storage-medium") || card_receiving.item.affordances.includes("storage-small")) {
+      if (
+        card_receiving.item.affordances.includes("storage-medium") ||
+        card_receiving.item.affordances.includes("storage-small")
+      ) {
+        playGrid.value![dragOrigin[0]][dragOrigin[1]] = {
+          card: null,
+          is_being_dragged: false,
+        };
+      }
+    }
+    // park
+    if (card_sending?.item.affordances.includes("parkable")) {
+      // test if it fits
+      if (card_receiving.item.affordances.includes("is-parking-space")) {
+        card_receiving.images.push({
+          name: card_sending.item.images[0],
+          zIndex: 1,
+          scale: 0.43,
+          offset: [Math.random() * -40 + 20, Math.random() * -40 + 20],
+        });
         playGrid.value![dragOrigin[0]][dragOrigin[1]] = {
           card: null,
           is_being_dragged: false,

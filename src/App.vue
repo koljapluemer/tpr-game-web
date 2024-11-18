@@ -3,7 +3,7 @@
     <router-view />
   </main>
 
-  <footer class="border-t-2 mt-10 p-4 text-sm flex justify-center flex-col w-full">
+  <footer class="border-t-2 mt-10 p-2 text-sm flex justify-center flex-col w-full">
     <!-- Twitter Share Button -->
     <!-- <a
       href="https://twitter.com/share?url=https://location.koljapluemer.com/"

@@ -17,5 +17,12 @@ export default
         [[], colorfulCars, colorfulCars, []],
         [thingsThatFitInCar, thingsThatFitInCar, thingsThatFitInCar, thingsThatFitInCar]
       ]
+    },
+    "park-car-x" : {
+      grid: [
+        [[], ["parking-lot"], []],
+        [["parking-lot"], ["house"], ["parking-lot"]],
+        [["car-old-movable"], ["parking-lot"], []],
+      ]
     }
   };
