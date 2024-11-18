@@ -1,5 +1,6 @@
 <template>
-  <div class="flex flex-col gap-1 bg-slate-200 p-8" v-if="playGrid">
+  <h2 class="font-bold text-2xl text-center text-slate-800 p-2">Pack die Melone ins Auto!</h2>
+  <div class="flex flex-col gap-1 bg-white p-8" v-if="playGrid">
     <!-- Render the grid rows -->
     <div v-for="(row, rowIndex) in playGrid" :key="rowIndex" class="flex flex-row gap-1">
       <div
@@ -9,14 +10,12 @@
         @dragover.prevent
         @drop="onDrop($event, rowIndex, colIndex)"
       >
-        <!-- @dragStart="" -->
-
         <div
           v-if="playGrid[rowIndex][colIndex].card"
-          class="card flex bg-slate-200 shadow-md w-full h-full justify-center align-center"
+          class="card flex bg-slate-200 shadow-md w-full h-full justify-center items-center"
           :style="
             playGrid[rowIndex][colIndex].is_being_dragged
-              ? 'transform: translateX(-9999px); transition: 0.01s'
+              ? 'transform: translateX(-9999px); transition: 0.01s; background-color: transparent'
               : ''
           "
           draggable="true"
@@ -109,7 +108,7 @@ for (var key in levelTemplates) {
   levels.push(level);
 }
 
-const currentLevel = ref(levels[0]);
+const currentLevel = ref(levels[1]);
 const playGrid: Ref<Grid | null> = ref(null);
 
 function generateGrid() {
@@ -165,7 +164,6 @@ function onDragStart(event, row, col) {
 }
 
 function onDrop(event, row, col) {
-  console.log("on drop");
   playGrid.value![dragOrigin[0]][dragOrigin[1]].is_being_dragged = false;
 
   // allow placing on empty fields
@@ -186,7 +184,6 @@ function onDrop(event, row, col) {
       if (newItemName != null) {
         const newItem = items[newItemName]
 
-        console.log("cutting...")
         playGrid.value![row][col].card = {
           item: newItem,
           images: [{
@@ -194,7 +191,6 @@ function onDrop(event, row, col) {
             zIndex: 0
           }]
         }
-        console.log("grid now", playGrid.value)
       }
     }
   }

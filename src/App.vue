@@ -1,5 +1,5 @@
 <template>
-  <main class="flex flex-col gap-4 flex-center p-10 max-w-lg mx-auto w-full">
+  <main class="m-auto">
     <router-view />
   </main>
 
