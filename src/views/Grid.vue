@@ -14,8 +14,10 @@
         <div
           v-if="playGrid[rowIndex][colIndex].card"
           class="card flex bg-slate-200 shadow-md w-full h-full justify-center align-center"
+          :style="playGrid[rowIndex][colIndex].is_being_dragged ? 'transform: translateX(-9999px); transition: 0.01s' : '' "
           draggable="true"
           @dragstart="onDragStart($event, rowIndex, colIndex)"
+          @dragend="playGrid[rowIndex][colIndex].is_being_dragged = false"
         >
           <!-- this can later be extended into rendering the whole array of images, so img can be added -->
           <img
@@ -148,6 +150,7 @@ let draggedCard: Card | null = null;
 let dragOrigin = [-1, -1];
 
 function onDragStart(event, row, col) {
+  // event.preventDefault();
   event.dataTransfer.dropEffect = "move";
   event.dataTransfer.effectAllowed = "move";
 
