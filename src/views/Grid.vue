@@ -5,25 +5,28 @@
       <div
         v-for="(cell, colIndex) in row"
         :key="colIndex"
-        class="bg-white p-1 min-h-32 min-w-32 w-32 h-32 "
+        class="bg-white p-1 min-h-32 min-w-32 w-32 h-32"
         @dragover.prevent
+        @drop="onDrop($event, rowIndex, colIndex)"
       >
-        <!-- Render items in the cell -->
-        <!-- :style="{ backgroundImage: `url(${items[itemKey]?.images[0] || ''})` }" -->
+        <!-- @dragStart="" -->
 
         <div
           v-if="playGrid[rowIndex][colIndex].card"
           class="card flex bg-slate-200 shadow-md w-full h-full justify-center align-center"
           draggable="true"
+          @dragstart="onDragStart($event, rowIndex, colIndex)"
         >
+          <!-- this can later be extended into rendering the whole array of images, so img can be added -->
           <img
             :src="
               '/assets/items/' +
               playGrid[rowIndex][colIndex].card.images[0].name +
               '.webp'
             "
-            class="object-contain w-24 h-24 "
+            class="object-contain w-24 h-24"
             alt=""
+            draggable="false"
           />
         </div>
       </div>
@@ -135,4 +138,33 @@ function generateGrid() {
 }
 
 generateGrid();
+
+// D & D
+
+let draggedCard: Card | null = null;
+let dragOrigin = [-1, -1];
+
+function onDragStart(event, row, col) {
+  // event.dataTransfer.setData("text", event.target.id)
+  // event.dataTransfer.dropEffect = "move";
+  // event.dataTransfer.effectAllowed = "move";
+  console.log('event', event.dataTransfer)
+
+  draggedCard = playGrid.value![row][col].card;
+  dragOrigin = [row, col];
+
+}
+
+function isNotNull<T>(value: T | null): value is T {
+  return value !== null;
+}
+
+function onDrop(event, row, col) {
+  console.log('on drop')
+  if (isNotNull(draggedCard) ) {
+    playGrid.value![row][col].card = draggedCard;
+  }
+
+  playGrid.value![dragOrigin[0]][dragOrigin[1]] = {card: null};
+}
 </script>
