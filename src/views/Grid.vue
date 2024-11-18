@@ -1,7 +1,39 @@
-<template></template>
+<template>
+  <div class="flex flex-col gap-1 bg-slate-200 p-8" v-if="playGrid">
+    <!-- Render the grid rows -->
+    <div v-for="(row, rowIndex) in playGrid" :key="rowIndex" class="flex flex-row gap-1">
+      <div
+        v-for="(cell, colIndex) in row"
+        :key="colIndex"
+        class="bg-white p-1 min-h-32 min-w-32 w-32 h-32 "
+        @dragover.prevent
+      >
+        <!-- Render items in the cell -->
+        <!-- :style="{ backgroundImage: `url(${items[itemKey]?.images[0] || ''})` }" -->
+
+        <div
+          v-if="playGrid[rowIndex][colIndex].card"
+          class="card flex bg-slate-200 shadow-md w-full h-full justify-center align-center"
+          draggable="true"
+        >
+          <img
+            :src="
+              '/assets/items/' +
+              playGrid[rowIndex][colIndex].card.images[0].name +
+              '.webp'
+            "
+            class="object-contain w-24 h-24 "
+            alt=""
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
 
 <script setup lang="ts">
 import { ref } from "vue";
+import type { Ref } from "vue";
 
 import levelTemplates from "../data/levelTemplates.js";
 import itemTemplates from "../data/items.js";
@@ -67,7 +99,7 @@ for (var key in levelTemplates) {
 }
 
 const currentLevel = ref(levels[0]);
-const playGrid = ref({});
+const playGrid: Ref<Grid | null> = ref(null);
 
 function generateGrid() {
   let level = currentLevel.value;
@@ -96,11 +128,11 @@ function generateGrid() {
         });
       }
     }
-    grid.push(row)
+    grid.push(row);
   }
 
   playGrid.value = grid;
 }
 
-generateGrid()
+generateGrid();
 </script>
