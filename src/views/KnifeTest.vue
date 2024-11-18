@@ -49,6 +49,9 @@ function onDragStart(event, itemKey, row, col) {
 }
 
 // Handle the drop event
+/** test 
+ * @param {Array[Array]} string
+*/
 function onDrop(event, row, col) {
   if (!draggedItem.value) return;
 

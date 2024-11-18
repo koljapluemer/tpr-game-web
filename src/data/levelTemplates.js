@@ -1,12 +1,11 @@
 // levelTemplates.js
-export default [
-    {
-      name: "Foo Level",
+export default
+  {
+    "cut-fruit-1": {
       grid: [
         [["kiwi"], ["knife"]],
         [[], []],
       ],
       prerequisites: [],
     },
-  ];
-  
+  };
