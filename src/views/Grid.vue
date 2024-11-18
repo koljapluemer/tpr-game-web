@@ -25,6 +25,7 @@
         >
           <!-- this can later be extended into rendering the whole array of images, so img can be added -->
           <img
+            :key="playGrid[rowIndex][colIndex].card.images[0].name"
             :src="
               '/assets/items/' +
               playGrid[rowIndex][colIndex].card.images[0].name +
@@ -175,5 +176,28 @@ function onDrop(event, row, col) {
     };
     playGrid.value![row][col].card = draggedCard;
   }
+
+  // cutting
+  const card_sending = playGrid.value![dragOrigin[0]][dragOrigin[1]].card;
+  const card_receiving = playGrid.value![row][col].card
+  if (card_receiving != null ) {
+    if (card_sending?.item.affordances.includes("cuts") && card_receiving.item.affordances.includes("cuttable")) {
+      const newItemName = card_receiving.item.loadWhenCut
+      if (newItemName != null) {
+        const newItem = items[newItemName]
+
+        console.log("cutting...")
+        playGrid.value![row][col].card = {
+          item: newItem,
+          images: [{
+            name: newItem.images[0],
+            zIndex: 0
+          }]
+        }
+        console.log("grid now", playGrid.value)
+      }
+    }
+  }
+
 }
 </script>
