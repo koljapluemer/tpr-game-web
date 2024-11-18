@@ -62,6 +62,7 @@ export interface Card {
 // Field that may contain a card
 export interface Field {
   card: Card | null;
+  is_being_dragged: boolean;
 }
 
 // 2D Grid composed of fields
@@ -115,6 +116,7 @@ function generateGrid() {
         const item = items[randomItemKey];
         const randomItemImg = item.images[Math.floor(Math.random() * item.images.length)];
         row.push({
+          is_being_dragged: false,
           card: {
             item: item,
             images: [
@@ -128,6 +130,7 @@ function generateGrid() {
       } else {
         row.push({
           card: null,
+          is_being_dragged: false,
         });
       }
     }
@@ -145,14 +148,12 @@ let draggedCard: Card | null = null;
 let dragOrigin = [-1, -1];
 
 function onDragStart(event, row, col) {
-  // event.dataTransfer.setData("text", event.target.id)
-  // event.dataTransfer.dropEffect = "move";
-  // event.dataTransfer.effectAllowed = "move";
-  console.log('event', event.dataTransfer)
+  event.dataTransfer.dropEffect = "move";
+  event.dataTransfer.effectAllowed = "move";
 
   draggedCard = playGrid.value![row][col].card;
+  playGrid.value![row][col].is_being_dragged = true;
   dragOrigin = [row, col];
-
 }
 
 function isNotNull<T>(value: T | null): value is T {
@@ -160,11 +161,12 @@ function isNotNull<T>(value: T | null): value is T {
 }
 
 function onDrop(event, row, col) {
-  console.log('on drop')
-  if (isNotNull(draggedCard) ) {
+  console.log("on drop");
+  playGrid.value![dragOrigin[0]][dragOrigin[1]].is_being_dragged = false;
+
+  playGrid.value![dragOrigin[0]][dragOrigin[1]] = { card: null, is_being_dragged: false };
+  if (isNotNull(draggedCard)) {
     playGrid.value![row][col].card = draggedCard;
   }
-
-  playGrid.value![dragOrigin[0]][dragOrigin[1]] = {card: null};
 }
 </script>
