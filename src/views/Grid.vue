@@ -14,7 +14,11 @@
         <div
           v-if="playGrid[rowIndex][colIndex].card"
           class="card flex bg-slate-200 shadow-md w-full h-full justify-center align-center"
-          :style="playGrid[rowIndex][colIndex].is_being_dragged ? 'transform: translateX(-9999px); transition: 0.01s' : '' "
+          :style="
+            playGrid[rowIndex][colIndex].is_being_dragged
+              ? 'transform: translateX(-9999px); transition: 0.01s'
+              : ''
+          "
           draggable="true"
           @dragstart="onDragStart($event, rowIndex, colIndex)"
           @dragend="playGrid[rowIndex][colIndex].is_being_dragged = false"
@@ -159,16 +163,16 @@ function onDragStart(event, row, col) {
   dragOrigin = [row, col];
 }
 
-function isNotNull<T>(value: T | null): value is T {
-  return value !== null;
-}
-
 function onDrop(event, row, col) {
   console.log("on drop");
   playGrid.value![dragOrigin[0]][dragOrigin[1]].is_being_dragged = false;
 
-  playGrid.value![dragOrigin[0]][dragOrigin[1]] = { card: null, is_being_dragged: false };
-  if (isNotNull(draggedCard)) {
+  // allow placing on empty fields
+  if (playGrid.value![row][col].card == null) {
+    playGrid.value![dragOrigin[0]][dragOrigin[1]] = {
+      card: null,
+      is_being_dragged: false,
+    };
     playGrid.value![row][col].card = draggedCard;
   }
 }
