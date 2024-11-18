@@ -30,7 +30,7 @@
       <a class="underline" href="https://koljapluemer.com/">koljapluemer.com</a></span
     >
     <hr class="m-2" />
-    <router-link to="/main" class="underline">Home</router-link>
+    <router-link to="/" class="underline">Home</router-link>
     <!-- <router-link to="/about" class="underline">About</router-link> -->
   </footer>
 </template>
