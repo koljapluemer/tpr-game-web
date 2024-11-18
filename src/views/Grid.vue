@@ -1,5 +1,7 @@
 <template>
-  <h2 class="font-bold text-2xl text-center text-slate-800 p-2">Pack die Melone ins Auto!</h2>
+  <h2 class="font-bold text-2xl text-center text-slate-800 p-2">
+    Pack die Melone ins Auto!
+  </h2>
   <div class="flex flex-col gap-1 bg-white p-8" v-if="playGrid">
     <!-- Render the grid rows -->
     <div v-for="(row, rowIndex) in playGrid" :key="rowIndex" class="flex flex-row gap-1">
@@ -18,7 +20,9 @@
               ? 'transform: translateX(-9999px); transition: 0.01s; background-color: transparent'
               : ''
           "
-          draggable="true"
+          :draggable="
+            playGrid[rowIndex][colIndex].card.item.affordances.includes('movable')
+          "
           @dragstart="onDragStart($event, rowIndex, colIndex)"
           @dragend="playGrid[rowIndex][colIndex].is_being_dragged = false"
         >
@@ -166,7 +170,7 @@ function onDragStart(event, row, col) {
 function onDrop(event, row, col) {
   playGrid.value![dragOrigin[0]][dragOrigin[1]].is_being_dragged = false;
 
-  // allow placing on empty fields
+  // allow just placing on empty fields
   if (playGrid.value![row][col].card == null) {
     playGrid.value![dragOrigin[0]][dragOrigin[1]] = {
       card: null,
@@ -174,26 +178,51 @@ function onDrop(event, row, col) {
     };
     playGrid.value![row][col].card = draggedCard;
   }
+  // ALCHEMY
+  else {
+    const card_sending = playGrid.value![dragOrigin[0]][dragOrigin[1]].card;
+    const card_receiving = playGrid.value![row][col].card;
 
-  // cutting
-  const card_sending = playGrid.value![dragOrigin[0]][dragOrigin[1]].card;
-  const card_receiving = playGrid.value![row][col].card
-  if (card_receiving != null ) {
-    if (card_sending?.item.affordances.includes("cuts") && card_receiving.item.affordances.includes("cuttable")) {
-      const newItemName = card_receiving.item.loadWhenCut
+    // cutting
+    if (
+      card_sending?.item.affordances.includes("cuts") &&
+      card_receiving.item.affordances.includes("cuttable")
+    ) {
+      const newItemName = card_receiving.item.loadWhenCut;
       if (newItemName != null) {
-        const newItem = items[newItemName]
+        const newItem = items[newItemName];
 
         playGrid.value![row][col].card = {
           item: newItem,
-          images: [{
-            name: newItem.images[0],
-            zIndex: 0
-          }]
-        }
+          images: [
+            {
+              name: newItem.images[0],
+              zIndex: 0,
+            },
+          ],
+        };
+      }
+    }
+    // storage
+    // (simply kill stored items)
+    if (card_sending?.item.affordances.includes("storable-medium")) {
+      // test if it fits
+      if (card_receiving.item.affordances.includes("storage-medium")) {
+        playGrid.value![dragOrigin[0]][dragOrigin[1]] = {
+          card: null,
+          is_being_dragged: false,
+        };
+      }
+    }
+    if (card_sending?.item.affordances.includes("storable-small")) {
+      // test if it fits
+      if (card_receiving.item.affordances.includes("storage-medium") || card_receiving.item.affordances.includes("storage-small")) {
+        playGrid.value![dragOrigin[0]][dragOrigin[1]] = {
+          card: null,
+          is_being_dragged: false,
+        };
       }
     }
   }
-
 }
 </script>
