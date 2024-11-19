@@ -47,6 +47,11 @@
   </div>
 
   {{ availableAffordances }}
+
+  <hr>
+  <div v-for="a in availableActions"> ACTION: {{ a }} <br></div>
+
+
 </template>
 
 <script setup lang="ts">
@@ -119,7 +124,7 @@ for (var key in levelTemplates) {
   levels.push(level);
 }
 
-const currentLevel = ref(levels[2]);
+const currentLevel = ref(levels[1]);
 const playGrid: Ref<Grid | null> = ref(null);
 const itemKeyCount: { [key: string]: number } = {};
 
@@ -200,10 +205,8 @@ function onDrop(event, row, col) {
 
   // allow just placing on empty fields
   if (playGrid.value![row][col].card == null) {
-    playGrid.value![dragOrigin[0]][dragOrigin[1]] = {
-      card: null,
-      is_being_dragged: false,
-    };
+    killCardAt(dragOrigin[0], dragOrigin[1]);
+
     playGrid.value![row][col].card = draggedCard;
   }
   // ALCHEMY
@@ -236,10 +239,7 @@ function onDrop(event, row, col) {
     if (card_sending?.item.affordances.includes("storable-medium")) {
       // test if it fits
       if (card_receiving.item.affordances.includes("storage-medium")) {
-        playGrid.value![dragOrigin[0]][dragOrigin[1]] = {
-          card: null,
-          is_being_dragged: false,
-        };
+        killCardAt(dragOrigin[0], dragOrigin[1]);
       }
     }
     if (card_sending?.item.affordances.includes("storable-small")) {
@@ -248,10 +248,7 @@ function onDrop(event, row, col) {
         card_receiving.item.affordances.includes("storage-medium") ||
         card_receiving.item.affordances.includes("storage-small")
       ) {
-        playGrid.value![dragOrigin[0]][dragOrigin[1]] = {
-          card: null,
-          is_being_dragged: false,
-        };
+        killCardAt(dragOrigin[0], dragOrigin[1]);
       }
     }
     // park
@@ -265,7 +262,7 @@ function onDrop(event, row, col) {
           offset: [Math.random() * -40 + 20, Math.random() * -40 + 20],
         });
 
-        killCardAt(dragOrigin[0], dragOrigin[1])
+        killCardAt(dragOrigin[0], dragOrigin[1]);
       }
     }
   }
@@ -300,12 +297,80 @@ function getKeysInContext(cell: Field) {
   return [mainKey];
 }
 
+function getKeysForItem(item: Item) {
+
+  // main
+  let mainKey = item.key;
+  if (itemKeyCount[mainKey] > 1) {
+    mainKey = "A__" + mainKey;
+  } else {
+    mainKey = "THE__" + mainKey;
+  }
+
+  mainKey = mainKey.toUpperCase();
+
+  return [mainKey];
+}
+
+
+
 const availableAffordances = computed(() => {
   return itemsInPlay.value.map((item) => item.affordances).flat();
 });
 
-interface Action {}
+interface Action {
+  sender: Item;
+  receiver?: Item;
+  affordance: string;
+  sender_keys: string[];
+  receiver_keys?: string[];
+}
+
+const activeAffordances = {
+  movable: null,
+  "storable-medium": "storage-medium",
+  "storable-small": "storage-small",
+  "storable-large": "storage-large",
+  parkable: "is-parking-space",
+  cuts: "cuttable",
+};
+
 const availableActions: Action[] = computed(() => {
-  return [];
+  const actions: Action[] = [];
+  for (let item: Item of itemsInPlay.value) {
+    console.log('affs', item.affordances)
+    for (const affordance of item.affordances) {
+      console.log('checking aff', affordance)
+      if (affordance in activeAffordances) {
+        if (activeAffordances[affordance] === null) {
+          const action: Action = {
+            sender: item,
+            affordance: affordance,
+            sender_keys: getKeysForItem(item),
+          };
+          actions.push(action);
+        } else {
+          for (var combination_item: Item of itemsInPlay.value) {
+            if (combination_item !== item) {
+              for (var combination_affordance of combination_item.affordances) {
+                if (combination_affordance == activeAffordances[affordance]) {
+                  const action: Action = {
+                    sender: item,
+                    affordance: affordance,
+                    sender_keys: getKeysForItem(item),
+                    receiver: combination_item,
+                    receiver_keys: getKeysForItem(combination_item),
+                  };
+                  actions.push(action)
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  return actions
 });
 </script>
