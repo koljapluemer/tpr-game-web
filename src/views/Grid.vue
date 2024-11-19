@@ -45,10 +45,12 @@
       </div>
     </div>
   </div>
+
+  {{ availableAffordances }}
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import type { Ref } from "vue";
 
 import levelTemplates from "../data/levelTemplates.js";
@@ -121,6 +123,8 @@ const currentLevel = ref(levels[2]);
 const playGrid: Ref<Grid | null> = ref(null);
 const itemKeyCount: { [key: string]: number } = {};
 
+const itemsInPlay: Ref<Item[]> = ref([]);
+
 function generateGrid() {
   let level = currentLevel.value;
   let grid: Grid = [];
@@ -130,6 +134,8 @@ function generateGrid() {
       if (_cell.length > 0) {
         const randomItemKey = _cell[Math.floor(Math.random() * _cell.length)];
         const item = items[randomItemKey];
+
+        itemsInPlay.value.push(item);
 
         if (item.key in itemKeyCount) {
           itemKeyCount[item.key] += 1;
@@ -258,13 +264,22 @@ function onDrop(event, row, col) {
           scale: 0.43,
           offset: [Math.random() * -40 + 20, Math.random() * -40 + 20],
         });
-        playGrid.value![dragOrigin[0]][dragOrigin[1]] = {
-          card: null,
-          is_being_dragged: false,
-        };
+
+        killCardAt(dragOrigin[0], dragOrigin[1])
       }
     }
   }
+}
+
+function killCardAt(row: number, cell: number) {
+  itemsInPlay.value = itemsInPlay.value.filter(
+    (item) => item !== playGrid.value![row][cell].card.item
+  );
+
+  playGrid.value![row][cell] = {
+    card: null,
+    is_being_dragged: false,
+  };
 }
 
 // keys, actions, quests
@@ -280,8 +295,17 @@ function getKeysInContext(cell: Field) {
     mainKey = "THE__" + mainKey;
   }
 
-  mainKey = mainKey.toUpperCase()
+  mainKey = mainKey.toUpperCase();
 
   return [mainKey];
 }
+
+const availableAffordances = computed(() => {
+  return itemsInPlay.value.map((item) => item.affordances).flat();
+});
+
+interface Action {}
+const availableActions: Action[] = computed(() => {
+  return [];
+});
 </script>
