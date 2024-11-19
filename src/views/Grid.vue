@@ -27,15 +27,20 @@
           @dragend="playGrid[rowIndex][colIndex].is_being_dragged = false"
         >
           <!-- this can later be extended into rendering the whole array of images, so img can be added -->
+          <!-- class="object-contain w-24 h-24 absolute" -->
+
           <img
             v-for="img of playGrid[rowIndex][colIndex].card.images"
             :key="img.name"
             :src="'/assets/items/' + img.name + '.webp'"
-            class="object-contain w-24 h-24 absolute"
+            class="object-contain w-4 h-4 absolute"
             :style="getImageStyle(img)"
             alt=""
             draggable="false"
           />
+          <small class="text-black" v-for="key in getKeysInContext(cell)">
+            {{ key }}
+          </small>
         </div>
       </div>
     </div>
@@ -91,7 +96,7 @@ const levels: Level[] = [];
 for (var key in itemTemplates) {
   let val = itemTemplates[key];
   let item: Item = {
-    key: key,
+    key: val["primary_key"],
     images: val["images"],
     affordances: val["affordances"] || [],
     loadWhenCut: val["load_when_cut"],
@@ -114,6 +119,7 @@ for (var key in levelTemplates) {
 
 const currentLevel = ref(levels[2]);
 const playGrid: Ref<Grid | null> = ref(null);
+const itemKeyCount: { [key: string]: number } = {};
 
 function generateGrid() {
   let level = currentLevel.value;
@@ -124,6 +130,13 @@ function generateGrid() {
       if (_cell.length > 0) {
         const randomItemKey = _cell[Math.floor(Math.random() * _cell.length)];
         const item = items[randomItemKey];
+
+        if (item.key in itemKeyCount) {
+          itemKeyCount[item.key] += 1;
+        } else {
+          itemKeyCount[item.key] = 1;
+        }
+
         const randomItemImg = item.images[Math.floor(Math.random() * item.images.length)];
         row.push({
           is_being_dragged: false,
@@ -252,5 +265,23 @@ function onDrop(event, row, col) {
       }
     }
   }
+}
+
+// keys, actions, quests
+
+function getKeysInContext(cell: Field) {
+  const item = cell.card?.item;
+
+  // main
+  let mainKey = item.key;
+  if (itemKeyCount[mainKey] > 1) {
+    mainKey = "A__" + mainKey;
+  } else {
+    mainKey = "THE__" + mainKey;
+  }
+
+  mainKey = mainKey.toUpperCase()
+
+  return [mainKey];
 }
 </script>
