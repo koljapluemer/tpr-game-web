@@ -16,7 +16,7 @@
           v-if="playGrid[rowIndex][colIndex].card"
           class="card flex bg-slate-200 shadow-md w-full h-full justify-center items-center"
           :style="
-            playGrid[rowIndex][colIndex].is_being_dragged
+            playGrid[rowIndex][colIndex].isBeingDragged
               ? 'transform: translateX(-9999px); transition: 0.01s; background-color: transparent'
               : ''
           "
@@ -24,7 +24,7 @@
             playGrid[rowIndex][colIndex].card.item.affordances.includes('movable')
           "
           @dragstart="onDragStart($event, rowIndex, colIndex)"
-          @dragend="playGrid[rowIndex][colIndex].is_being_dragged = false"
+          @dragend="playGrid[rowIndex][colIndex].isBeingDragged = false"
         >
           <!-- this can later be extended into rendering the whole array of images, so img can be added -->
           <!-- class="object-contain w-24 h-24 absolute" -->
@@ -86,7 +86,7 @@ export interface Card {
 // Field that may contain a card
 export interface Field {
   card: Card | null;
-  is_being_dragged: boolean;
+  isBeingDragged: boolean;
 }
 
 // 2D Grid composed of fields
@@ -145,7 +145,7 @@ function generateGrid() {
 
         const randomItemImg = item.images[Math.floor(Math.random() * item.images.length)];
         row.push({
-          is_being_dragged: false,
+          isBeingDragged: false,
           card: {
             item: item,
             images: [
@@ -159,7 +159,7 @@ function generateGrid() {
       } else {
         row.push({
           card: null,
-          is_being_dragged: false,
+          isBeingDragged: false,
         });
       }
     }
@@ -182,7 +182,7 @@ function onDragStart(event, row, col) {
   event.dataTransfer.effectAllowed = "move";
 
   draggedCard = playGrid.value![row][col].card;
-  playGrid.value![row][col].is_being_dragged = true;
+  playGrid.value![row][col].isBeingDragged = true;
   dragOrigin = [row, col];
 }
 
@@ -196,7 +196,7 @@ function getImageStyle(img: CardImage): string {
 }
 
 function onDrop(event, row, col) {
-  playGrid.value![dragOrigin[0]][dragOrigin[1]].is_being_dragged = false;
+  playGrid.value![dragOrigin[0]][dragOrigin[1]].isBeingDragged = false;
 
   // allow just placing on empty fields
   if (playGrid.value![row][col].card == null) {
@@ -270,7 +270,7 @@ function killCardAt(row: number, cell: number) {
   }
   playGrid.value![row][cell] = {
     card: null,
-    is_being_dragged: false,
+    isBeingDragged: false,
   };
 }
 
@@ -285,8 +285,8 @@ const itemKeyCount = computed(() => {
       returnDict[item.key] = 1;
     }
   }
-  console.log('ITEM KEY COUNT', returnDict)
-  return returnDict
+  console.log("ITEM KEY COUNT", returnDict);
+  return returnDict;
 });
 
 function getKeysInContext(cell: Field) {
@@ -334,8 +334,8 @@ interface Action {
   sender: Item;
   receiver?: Item;
   affordance: string;
-  sender_keys: string[];
-  receiver_keys?: string[];
+  senderKeys: string[];
+  receiverKeys?: string[];
 }
 
 const activeAffordances = {
@@ -358,20 +358,20 @@ const availableActions: Action[] = computed(() => {
           const action: Action = {
             sender: item,
             affordance: affordance,
-            sender_keys: getKeysForItem(item),
+            senderKeys: getKeysForItem(item),
           };
           actions.push(action);
         } else {
-          for (var combination_item: Item of itemsInPlay.value) {
-            if (combination_item !== item) {
-              for (var combination_affordance of combination_item.affordances) {
-                if (combination_affordance == activeAffordances[affordance]) {
+          for (var combinationItem: Item of itemsInPlay.value) {
+            if (combinationItem !== item) {
+              for (var combinationAffordance of combinationItem.affordances) {
+                if (combinationAffordance == activeAffordances[affordance]) {
                   const action: Action = {
                     sender: item,
                     affordance: affordance,
-                    sender_keys: getKeysForItem(item),
-                    receiver: combination_item,
-                    receiver_keys: getKeysForItem(combination_item),
+                    senderKeys: getKeysForItem(item),
+                    receiver: combinationItem,
+                    receiverKeys: getKeysForItem(combinationItem),
                   };
                   actions.push(action);
                 }
@@ -384,5 +384,23 @@ const availableActions: Action[] = computed(() => {
   }
 
   return actions;
+});
+
+interface Quest {
+  requiredAffordance: string,
+  requiredSenderKey?: string,
+  requiredReceiverKey?: string
+}
+
+const availableQuests: Quest[] = computed(() => {
+  // ANY CUT ANY
+  // THE__KNIFE__CUT__ANY
+  // ANY__CUT__THE__KIWI
+  // THE__KNIFE__CUT__THE__KIWI
+  // THE__KNIFE__MOVE
+  let quests: Quest[] = [];
+
+  // think about filters, like no-move-quests
+  // also: for a lot of levels, it makes sense to outlaw anything but specific do-this-with-this quests (e.g. only some from the list above)
 });
 </script>
