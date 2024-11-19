@@ -7,7 +7,7 @@
     <div v-for="(row, rowIndex) in playGrid" :key="rowIndex" class="flex flex-row gap-1">
       <div
         v-for="(cell, colIndex) in row"
-        :key="colIndex"
+        :key="cell.item"
         class="bg-white p-1 min-h-32 min-w-32 w-32 h-32"
         @dragover.prevent
         @drop="onDrop($event, rowIndex, colIndex)"
@@ -38,20 +38,22 @@
             alt=""
             draggable="false"
           />
-          <small class="text-black" v-for="key in getKeysInContext(cell)">
+          <small class="text-black" v-for="key in getKeysInContext(cell)" :key="key">
             {{ key }}
           </small>
         </div>
       </div>
     </div>
   </div>
+  <small>
+    {{ itemsInPlay }}
+  </small>
+  <hr />
 
   {{ availableAffordances }}
 
-  <hr>
-  <div v-for="a in availableActions"> ACTION: {{ a }} <br></div>
-
-
+  <hr />
+  <div v-for="a in availableActions">ACTION: {{ a }} <br /></div>
 </template>
 
 <script setup lang="ts">
@@ -126,7 +128,6 @@ for (var key in levelTemplates) {
 
 const currentLevel = ref(levels[1]);
 const playGrid: Ref<Grid | null> = ref(null);
-const itemKeyCount: { [key: string]: number } = {};
 
 const itemsInPlay: Ref<Item[]> = ref([]);
 
@@ -141,12 +142,6 @@ function generateGrid() {
         const item = items[randomItemKey];
 
         itemsInPlay.value.push(item);
-
-        if (item.key in itemKeyCount) {
-          itemKeyCount[item.key] += 1;
-        } else {
-          itemKeyCount[item.key] = 1;
-        }
 
         const randomItemImg = item.images[Math.floor(Math.random() * item.images.length)];
         row.push({
@@ -269,10 +264,10 @@ function onDrop(event, row, col) {
 }
 
 function killCardAt(row: number, cell: number) {
-  itemsInPlay.value = itemsInPlay.value.filter(
-    (item) => item !== playGrid.value![row][cell].card.item
-  );
-
+  const index = itemsInPlay.value.indexOf(playGrid.value![row][cell].card.item);
+  if (index != -1) {
+    itemsInPlay.value.splice(index, 1);
+  }
   playGrid.value![row][cell] = {
     card: null,
     is_being_dragged: false,
@@ -281,12 +276,32 @@ function killCardAt(row: number, cell: number) {
 
 // keys, actions, quests
 
+const itemKeyCount = computed(() => {
+  const returnDict = {};
+  for (var item of itemsInPlay.value) {
+    if (item.key in returnDict) {
+      returnDict[item.key] += 1;
+    } else {
+      returnDict[item.key] = 1;
+    }
+  }
+  console.log('ITEM KEY COUNT', returnDict)
+  return returnDict
+});
+
 function getKeysInContext(cell: Field) {
+  if (typeof cell.card == "undefined" || cell.card == null) {
+    return [];
+  } else {
+    if (typeof cell.card.item === "undefined") {
+      return [];
+    }
+  }
   const item = cell.card?.item;
 
   // main
   let mainKey = item.key;
-  if (itemKeyCount[mainKey] > 1) {
+  if (itemKeyCount.value[mainKey] > 1) {
     mainKey = "A__" + mainKey;
   } else {
     mainKey = "THE__" + mainKey;
@@ -298,10 +313,9 @@ function getKeysInContext(cell: Field) {
 }
 
 function getKeysForItem(item: Item) {
-
   // main
   let mainKey = item.key;
-  if (itemKeyCount[mainKey] > 1) {
+  if (itemKeyCount.value[mainKey] > 1) {
     mainKey = "A__" + mainKey;
   } else {
     mainKey = "THE__" + mainKey;
@@ -311,8 +325,6 @@ function getKeysForItem(item: Item) {
 
   return [mainKey];
 }
-
-
 
 const availableAffordances = computed(() => {
   return itemsInPlay.value.map((item) => item.affordances).flat();
@@ -338,9 +350,9 @@ const activeAffordances = {
 const availableActions: Action[] = computed(() => {
   const actions: Action[] = [];
   for (let item: Item of itemsInPlay.value) {
-    console.log('affs', item.affordances)
+    console.log("affs", item.affordances);
     for (const affordance of item.affordances) {
-      console.log('checking aff', affordance)
+      console.log("checking aff", affordance);
       if (affordance in activeAffordances) {
         if (activeAffordances[affordance] === null) {
           const action: Action = {
@@ -361,7 +373,7 @@ const availableActions: Action[] = computed(() => {
                     receiver: combination_item,
                     receiver_keys: getKeysForItem(combination_item),
                   };
-                  actions.push(action)
+                  actions.push(action);
                 }
               }
             }
@@ -371,6 +383,6 @@ const availableActions: Action[] = computed(() => {
     }
   }
 
-  return actions
+  return actions;
 });
 </script>
